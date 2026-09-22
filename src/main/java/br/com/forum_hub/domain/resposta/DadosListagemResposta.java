@@ -10,6 +10,6 @@ public record DadosListagemResposta(
         Boolean solucao
 ) {
     public DadosListagemResposta(Resposta resposta) {
-        this(resposta.getId(), resposta.getMensagem(), resposta.getAutor(), resposta.getDataCriacao(), resposta.ehSolucao());
+        this(resposta.getId(), resposta.getMensagem(), resposta.getAutor().getNomeCompleto(), resposta.getDataCriacao(), resposta.ehSolucao());
     }
 }
