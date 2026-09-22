@@ -27,6 +27,7 @@ public class Usuario implements UserDetails {
     private Boolean verificado;
     private String tokenVerificacao;
     private LocalDateTime expiracaoToken;
+    private Boolean ativo;
 
     public Usuario() {}
 
@@ -40,6 +41,7 @@ public class Usuario implements UserDetails {
         this.verificado = false;
         this.tokenVerificacao = UUID.randomUUID().toString();
         this.expiracaoToken = LocalDateTime.now().plusMinutes(30);
+        this.ativo = false;
     }
 
     @Override
@@ -55,6 +57,11 @@ public class Usuario implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return ativo;
     }
 
     public String getNomeCompleto() {
@@ -88,5 +95,27 @@ public class Usuario implements UserDetails {
         this.verificado = true;
         this.tokenVerificacao = null;
         this.expiracaoToken = null;
+        this.ativo = true;
+    }
+
+    public Usuario alterarDados(DadosEdicaoUsuario dados) {
+        if(dados.nomeUsuario() != null){
+            this.nomeUsuario = dados.nomeUsuario();
+        }
+        if(dados.miniBiografia() != null){
+            this.miniBiografia = dados.miniBiografia();
+        }
+        if(dados.biografia() != null){
+            this.biografia = dados.biografia();
+        }
+        return this;
+    }
+
+    public void alterarSenha(String senhaCriptografada) {
+        this.senha = senhaCriptografada;
+    }
+
+    public void desativar() {
+        this.ativo = false;
     }
 }

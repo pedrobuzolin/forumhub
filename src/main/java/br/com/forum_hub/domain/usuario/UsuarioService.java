@@ -50,4 +50,36 @@ public class UsuarioService implements UserDetailsService {
         Usuario usuario = repository.findByTokenVerificacao(codigo).orElseThrow();
         usuario.verificar();
     }
+
+    public Usuario buscarUsuario(Usuario logado) {
+        return repository.findByIdAndVerificadoTrueAndAtivoTrue(logado.getId())
+                .orElseThrow(() -> new RegraDeNegocioException("Usuario não encontrado!"));
+    }
+
+    @Transactional
+    public Usuario editarPerfil(Usuario usuario, @Valid DadosEdicaoUsuario dados) {
+        usuario.alterarDados(dados);
+        return repository.save(usuario);
+    }
+
+    @Transactional
+    public void alterarSenha(DadosAlteracaoSenha dados, Usuario logado) {
+        if(!encoder.matches(dados.senhaAtual(), logado.getPassword())){
+            throw new RegraDeNegocioException("Senha digitada não confere com senha atual!");
+        }
+
+        if(!dados.novaSenha().equals(dados.novaSenhaConfirmada())){
+            throw new RegraDeNegocioException("Senha e confirmação não conferem!");
+        }
+
+        String senhaCriptografada = encoder.encode(dados.novaSenha());
+        logado.alterarSenha(senhaCriptografada);
+        repository.save(logado);
+    }
+
+    @Transactional
+    public void desativarUsuario(Usuario usuario) {
+        usuario.desativar();
+        repository.save(usuario);
+    }
 }
