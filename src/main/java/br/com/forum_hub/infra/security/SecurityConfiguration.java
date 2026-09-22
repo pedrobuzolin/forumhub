@@ -27,7 +27,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(requests -> {
-                    requests.requestMatchers("/login", "/atualizar-token").permitAll();
+                    requests.requestMatchers("/login", "/atualizar-token", "/registrar").permitAll();
                     requests.anyRequest().authenticated();
                 })
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
