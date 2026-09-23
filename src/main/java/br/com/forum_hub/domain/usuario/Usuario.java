@@ -1,15 +1,17 @@
 package br.com.forum_hub.domain.usuario;
 
+import br.com.forum_hub.domain.perfil.Perfil;
+import br.com.forum_hub.domain.perfil.PerfilNome;
 import br.com.forum_hub.infra.exception.RegraDeNegocioException;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -28,10 +30,15 @@ public class Usuario implements UserDetails {
     private String tokenVerificacao;
     private LocalDateTime expiracaoToken;
     private Boolean ativo;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name="usuarios_perfis",
+                joinColumns = @JoinColumn(name="usuario_id"),
+                inverseJoinColumns = @JoinColumn(name="perfil_id"))
+    private List<Perfil> perfis = new ArrayList<>();
 
     public Usuario() {}
 
-    public Usuario(@Valid DadosCadastroUsuario dados, String senhaCriptografada) {
+    public Usuario(@Valid DadosCadastroUsuario dados, String senhaCriptografada, Perfil perfil) {
         this.nomeCompleto = dados.nomeCompleto();
         this.email = dados.email();
         this.senha = senhaCriptografada;
@@ -42,11 +49,12 @@ public class Usuario implements UserDetails {
         this.tokenVerificacao = UUID.randomUUID().toString();
         this.expiracaoToken = LocalDateTime.now().plusMinutes(30);
         this.ativo = false;
+        this.perfis.add(perfil);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return perfis;
     }
 
     @Override
@@ -117,5 +125,13 @@ public class Usuario implements UserDetails {
 
     public void desativar() {
         this.ativo = false;
+    }
+
+    public void adicionarPerfil(Perfil perfil) {
+        this.perfis.add(perfil);
+    }
+
+    public void removerPerfil(Perfil perfil) {
+        this.perfis.remove(perfil);
     }
 }

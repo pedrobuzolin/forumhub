@@ -1,5 +1,9 @@
 package br.com.forum_hub.domain.usuario;
 
+import br.com.forum_hub.domain.perfil.DadosPerfil;
+import br.com.forum_hub.domain.perfil.Perfil;
+import br.com.forum_hub.domain.perfil.PerfilNome;
+import br.com.forum_hub.domain.perfil.PerfilRepository;
 import br.com.forum_hub.infra.email.EmailService;
 import br.com.forum_hub.infra.exception.RegraDeNegocioException;
 import jakarta.transaction.Transactional;
@@ -17,11 +21,13 @@ public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository repository;
     private final PasswordEncoder encoder;
     private final EmailService emailService;
+    private final PerfilRepository perfilRepository;
 
-    public UsuarioService(UsuarioRepository repository, PasswordEncoder encoder, EmailService emailService) {
+    public UsuarioService(UsuarioRepository repository, PasswordEncoder encoder, EmailService emailService, PerfilRepository perfilRepository) {
         this.repository = repository;
         this.encoder = encoder;
         this.emailService = emailService;
+        this.perfilRepository = perfilRepository;
     }
 
     @Override
@@ -39,7 +45,8 @@ public class UsuarioService implements UserDetailsService {
         }
         String senhaCriptografada = encoder.encode(dados.senha());
 
-        Usuario usuario = new Usuario(dados, senhaCriptografada);
+        Perfil perfil = perfilRepository.findByNome(PerfilNome.ESTUDANTE);
+        Usuario usuario = new Usuario(dados, senhaCriptografada, perfil);
 
         emailService.enviarEmailVerificacao(usuario);
         return repository.save(usuario);
@@ -51,8 +58,8 @@ public class UsuarioService implements UserDetailsService {
         usuario.verificar();
     }
 
-    public Usuario buscarUsuario(Usuario logado) {
-        return repository.findByIdAndVerificadoTrueAndAtivoTrue(logado.getId())
+    public Usuario buscarPeloNomeUsuario(String nomeUsuario) {
+        return repository.findByNomeUsuarioIgnoreCaseAndVerificadoTrueAndAtivoTrue(nomeUsuario)
                 .orElseThrow(() -> new RegraDeNegocioException("Usuario não encontrado!"));
     }
 
@@ -81,5 +88,21 @@ public class UsuarioService implements UserDetailsService {
     public void desativarUsuario(Usuario usuario) {
         usuario.desativar();
         repository.save(usuario);
+    }
+
+    @Transactional
+    public Usuario adicionarPerfil(Long id, @Valid DadosPerfil dados) {
+        Usuario usuario = repository.findById(id).orElseThrow();
+        Perfil perfil = perfilRepository.findByNome(dados.perfilNome());
+        usuario.adicionarPerfil(perfil);
+        return usuario;
+    }
+
+    @Transactional
+    public Usuario removerPerfil(Long id, @Valid DadosPerfil dados) {
+        Usuario usuario = repository.findById(id).orElseThrow();
+        Perfil perfil = perfilRepository.findByNome(dados.perfilNome());
+        usuario.removerPerfil(perfil);
+        return usuario;
     }
 }

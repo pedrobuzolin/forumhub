@@ -1,5 +1,6 @@
 package br.com.forum_hub.controller;
 
+import br.com.forum_hub.domain.perfil.DadosPerfil;
 import br.com.forum_hub.domain.usuario.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +32,9 @@ public class UsuarioController {
         return ResponseEntity.ok("Conta verificada com sucesso");
     }
 
-    @GetMapping("/perfil")
-    public ResponseEntity<DadosListagemUsuario> verificarUsuario(@AuthenticationPrincipal Usuario logado, UriComponentsBuilder uriBuilder) {
-        Usuario usuario = usuarioService.buscarUsuario(logado);
+    @GetMapping("/{nomeUsuario}")
+    public ResponseEntity<DadosListagemUsuario> bucarPerfil(@PathVariable String nomeUsuario) {
+        Usuario usuario = usuarioService.buscarPeloNomeUsuario(nomeUsuario);
         return ResponseEntity.ok(new DadosListagemUsuario(usuario));
     }
 
@@ -53,5 +54,17 @@ public class UsuarioController {
     public ResponseEntity<Void> desativarUsuario(@AuthenticationPrincipal Usuario logado){
         usuarioService.desativarUsuario(logado);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/adicionar-perfil/{id}")
+    public ResponseEntity<DadosListagemUsuario> adicionarPerfil(@PathVariable Long id, @RequestBody @Valid DadosPerfil dados) {
+        Usuario usuario = usuarioService.adicionarPerfil(id, dados);
+        return ResponseEntity.ok(new DadosListagemUsuario(usuario));
+    }
+
+    @PatchMapping("/remover-perfil/{id}")
+    public ResponseEntity<DadosListagemUsuario> removerPerfil(@PathVariable Long id, @RequestBody @Valid DadosPerfil dados) {
+        Usuario usuario = usuarioService.removerPerfil(id, dados);
+        return ResponseEntity.ok(new DadosListagemUsuario(usuario));
     }
 }
