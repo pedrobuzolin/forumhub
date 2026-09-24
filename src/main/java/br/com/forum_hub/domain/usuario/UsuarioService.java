@@ -6,8 +6,10 @@ import br.com.forum_hub.domain.perfil.PerfilNome;
 import br.com.forum_hub.domain.perfil.PerfilRepository;
 import br.com.forum_hub.infra.email.EmailService;
 import br.com.forum_hub.infra.exception.RegraDeNegocioException;
+import br.com.forum_hub.infra.security.HierarquiaService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,12 +24,14 @@ public class UsuarioService implements UserDetailsService {
     private final PasswordEncoder encoder;
     private final EmailService emailService;
     private final PerfilRepository perfilRepository;
+    private final HierarquiaService hierarquiaService;
 
-    public UsuarioService(UsuarioRepository repository, PasswordEncoder encoder, EmailService emailService, PerfilRepository perfilRepository) {
+    public UsuarioService(UsuarioRepository repository, PasswordEncoder encoder, EmailService emailService, PerfilRepository perfilRepository, HierarquiaService hierarquiaService) {
         this.repository = repository;
         this.encoder = encoder;
         this.emailService = emailService;
         this.perfilRepository = perfilRepository;
+        this.hierarquiaService = hierarquiaService;
     }
 
     @Override
@@ -85,9 +89,13 @@ public class UsuarioService implements UserDetailsService {
     }
 
     @Transactional
-    public void desativarUsuario(Usuario usuario) {
+    public void desativarUsuario(Long id, Usuario logado) {
+        Usuario usuario = repository.findById(id).orElseThrow();
+
+        if(hierarquiaService.usuarioNaoTemPermissoes(logado, usuario, "ROLE_ADMIN"))
+            throw new AccessDeniedException("Não é possivel realizar essa operação!");
+
         usuario.desativar();
-        repository.save(usuario);
     }
 
     @Transactional
@@ -104,5 +112,10 @@ public class UsuarioService implements UserDetailsService {
         Perfil perfil = perfilRepository.findByNome(dados.perfilNome());
         usuario.removerPerfil(perfil);
         return usuario;
+    }
+
+    public void reativarUsuario(Long id) {
+        var usuario = repository.findById(id).orElseThrow();
+        usuario.reativar();
     }
 }
