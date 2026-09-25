@@ -36,13 +36,13 @@ public class UsuarioService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByEmailIgnoreCaseAndVerificadoTrue(username)
+        return repository.findByEmailIgnoreCaseAndVerificadoTrueAndAtivoTrue(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario não encontrado!"));
     }
 
     @Transactional
     public Usuario cadastrar(@Valid DadosCadastroUsuario dados) {
-        Optional<Usuario> optionalUsuario = repository.findByEmailIgnoreCaseAndVerificadoTrue(dados.email());
+        Optional<Usuario> optionalUsuario = repository.findByEmailIgnoreCaseAndVerificadoTrueAndAtivoTrue(dados.email());
 
         if(optionalUsuario.isPresent()){
             throw new RegraDeNegocioException("Já existe uma conta cadastrada com esse email ou nome de usuário!");

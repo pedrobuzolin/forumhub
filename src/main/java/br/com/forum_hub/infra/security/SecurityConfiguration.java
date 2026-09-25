@@ -30,7 +30,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(requests -> {
-                    requests.requestMatchers("/login", "/atualizar-token", "/registrar", "/verificar-conta").permitAll();
+                    requests.requestMatchers("/login/**", "/atualizar-token", "/registrar", "/verificar-conta").permitAll();
                     requests.requestMatchers(HttpMethod.GET, "/cursos").permitAll();
                     requests.requestMatchers(HttpMethod.GET, "/topicos/**").permitAll();
                     requests.requestMatchers(HttpMethod.POST, "/topicos").hasRole("ESTUDANTE");
